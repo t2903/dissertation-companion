@@ -14,16 +14,225 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      batches: {
+        Row: {
+          barn: string
+          batch_date: string
+          created_at: string
+          farmer_id: string
+          grade: string
+          id: string
+          moisture: number
+          status: string
+        }
+        Insert: {
+          barn: string
+          batch_date?: string
+          created_at?: string
+          farmer_id: string
+          grade: string
+          id?: string
+          moisture: number
+          status?: string
+        }
+        Update: {
+          barn?: string
+          batch_date?: string
+          created_at?: string
+          farmer_id?: string
+          grade?: string
+          id?: string
+          moisture?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "batches_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "farmers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      farmers: {
+        Row: {
+          contract_no: string
+          created_at: string
+          hectarage: number
+          id: string
+          joined_at: string
+          name: string
+          phone: string | null
+          region: string
+        }
+        Insert: {
+          contract_no: string
+          created_at?: string
+          hectarage?: number
+          id?: string
+          joined_at?: string
+          name: string
+          phone?: string | null
+          region: string
+        }
+        Update: {
+          contract_no?: string
+          created_at?: string
+          hectarage?: number
+          id?: string
+          joined_at?: string
+          name?: string
+          phone?: string | null
+          region?: string
+        }
+        Relationships: []
+      }
+      incidents: {
+        Row: {
+          category: string
+          corrective_action: string | null
+          created_at: string
+          description: string
+          due_date: string | null
+          farmer_id: string
+          id: string
+          resolved_at: string | null
+          severity: string
+          status: string
+        }
+        Insert: {
+          category: string
+          corrective_action?: string | null
+          created_at?: string
+          description: string
+          due_date?: string | null
+          farmer_id: string
+          id?: string
+          resolved_at?: string | null
+          severity: string
+          status?: string
+        }
+        Update: {
+          category?: string
+          corrective_action?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          farmer_id?: string
+          id?: string
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incidents_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "farmers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspections: {
+        Row: {
+          farmer_id: string
+          id: string
+          inspected_at: string
+          inspection_type: string
+          inspector_name: string
+          notes: string | null
+          score: number
+        }
+        Insert: {
+          farmer_id: string
+          id?: string
+          inspected_at?: string
+          inspection_type: string
+          inspector_name: string
+          notes?: string | null
+          score: number
+        }
+        Update: {
+          farmer_id?: string
+          id?: string
+          inspected_at?: string
+          inspection_type?: string
+          inspector_name?: string
+          notes?: string | null
+          score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspections_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "farmers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          region: string | null
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id: string
+          region?: string | null
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          region?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "admin"
+        | "manager"
+        | "compliance_officer"
+        | "agronomist"
+        | "farmer"
+        | "inspector"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +359,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "admin",
+        "manager",
+        "compliance_officer",
+        "agronomist",
+        "farmer",
+        "inspector",
+      ],
+    },
   },
 } as const
