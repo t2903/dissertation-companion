@@ -21,13 +21,13 @@ function AuthPage() {
     supabase.auth.getSession().then(({ data }) => { if (data.session) navigate({ to: "/dashboard" }); });
   }, [navigate]);
 
-  const signIn = async () => {
+  const signIn = async (destination: "/dashboard" | "/admin" = "/dashboard") => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return toast.error(error.message);
     toast.success("Welcome back");
-    navigate({ to: "/dashboard" });
+    navigate({ to: destination });
   };
   const signUp = async () => {
     setLoading(true);
