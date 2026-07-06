@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Leaf } from "lucide-react";
+import { Leaf, Shield } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({ component: AuthPage });
 
@@ -21,13 +21,13 @@ function AuthPage() {
     supabase.auth.getSession().then(({ data }) => { if (data.session) navigate({ to: "/dashboard" }); });
   }, [navigate]);
 
-  const signIn = async () => {
+  const signIn = async (destination: "/dashboard" | "/admin" = "/dashboard") => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return toast.error(error.message);
     toast.success("Welcome back");
-    navigate({ to: "/dashboard" });
+    navigate({ to: destination });
   };
   const signUp = async () => {
     setLoading(true);
@@ -55,7 +55,8 @@ function AuthPage() {
           <TabsContent value="signin" className="space-y-4 pt-4">
             <div><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@crp.co.zw" /></div>
             <div><Label>Password</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} /></div>
-            <Button className="w-full" onClick={signIn} disabled={loading}>{loading ? "Signing in…" : "Sign in"}</Button>
+            <Button className="w-full" onClick={() => signIn("/dashboard")} disabled={loading}>{loading ? "Signing in…" : "Sign in"}</Button>
+            <Button variant="outline" className="w-full" onClick={() => signIn("/admin")} disabled={loading}><Shield className="mr-2 h-4 w-4" />Sign in as Admin</Button>
           </TabsContent>
           <TabsContent value="signup" className="space-y-4 pt-4">
             <div><Label>Full name</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
