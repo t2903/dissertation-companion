@@ -55,7 +55,8 @@ function AuthPage() {
           <TabsContent value="signin" className="space-y-4 pt-4">
             <div><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@crp.co.zw" /></div>
             <div><Label>Password</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} /></div>
-            <Button className="w-full" onClick={signIn} disabled={loading}>{loading ? "Signing in…" : "Sign in"}</Button>
+            <Button className="w-full" onClick={() => signIn("/dashboard")} disabled={loading}>{loading ? "Signing in…" : "Sign in"}</Button>
+            <Button variant="outline" className="w-full" onClick={() => signIn("/admin")} disabled={loading}><Shield className="mr-2 h-4 w-4" />Sign in as Admin</Button>
           </TabsContent>
           <TabsContent value="signup" className="space-y-4 pt-4">
             <div><Label>Full name</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
