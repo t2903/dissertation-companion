@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Leaf, LayoutDashboard, Users, ClipboardCheck, AlertTriangle, Boxes, FileText, LogOut } from "lucide-react";
+import { Leaf, LayoutDashboard, Users, ClipboardCheck, AlertTriangle, Boxes, FileText, LogOut, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 
@@ -10,6 +10,7 @@ const nav = [
   { to: "/incidents", label: "Incidents", icon: AlertTriangle },
   { to: "/batches", label: "Batches", icon: Boxes },
   { to: "/reports", label: "Reports", icon: FileText },
+  { to: "/admin", label: "Admin", icon: Shield },
 ];
 
 export function AppShell({ children, title }: { children: React.ReactNode; title: string }) {
