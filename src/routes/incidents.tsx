@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, useAuthGuard } from "@/components/AppShell";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { listIncidents, listFarmers, updateIncidentStatus } from "@/lib/data.functions";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -12,23 +13,20 @@ export const Route = createFileRoute("/incidents")({ component: Incidents });
 
 function Incidents() {
   const ready = useAuthGuard();
+  const fetchInc = useServerFn(listIncidents);
+  const fetchFarmers = useServerFn(listFarmers);
+  const doUpdate = useServerFn(updateIncidentStatus);
   const [rows, setRows] = useState<any[]>([]);
   const [farmers, setFarmers] = useState<any[]>([]);
   const load = async () => {
-    const [r, f] = await Promise.all([
-      supabase.from("incidents").select("*").order("created_at", { ascending: false }),
-      supabase.from("farmers").select("id,name,region"),
-    ]);
-    setRows(r.data ?? []); setFarmers(f.data ?? []);
+    const [r, f] = await Promise.all([fetchInc(), fetchFarmers()]);
+    setRows(r ?? []); setFarmers(f ?? []);
   };
   useEffect(() => { if (ready) load(); }, [ready]);
   if (!ready) return null;
-  const setStatus = async (id: string, status: string) => {
-    const patch: any = { status };
-    if (status === "resolved") patch.resolved_at = new Date().toISOString();
-    const { error } = await supabase.from("incidents").update(patch).eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success("Incident updated"); load();
+  const setStatus = async (id: string, status: "open" | "in_review" | "resolved") => {
+    try { await doUpdate({ data: { id, status } }); toast.success("Incident updated"); load(); }
+    catch (e: any) { toast.error(e?.message ?? "Failed"); }
   };
   return (
     <AppShell title="Non-Compliance Incidents">
@@ -61,6 +59,7 @@ function Incidents() {
                 </TableRow>
               );
             })}
+            {rows.length === 0 && <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">No incidents logged.</TableCell></TableRow>}
           </TableBody>
         </Table>
       </Card>

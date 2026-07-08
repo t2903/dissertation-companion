@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, useAuthGuard } from "@/components/AppShell";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { listFarmers, listInspections, listIncidents, listBatches } from "@/lib/data.functions";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, PieChart, Pie, Cell, Legend } from "recharts";
@@ -11,18 +12,16 @@ export const Route = createFileRoute("/dashboard")({ component: Dashboard });
 
 function Dashboard() {
   const ready = useAuthGuard();
+  const fF = useServerFn(listFarmers);
+  const fI = useServerFn(listInspections);
+  const fC = useServerFn(listIncidents);
+  const fB = useServerFn(listBatches);
   const [data, setData] = useState<{ farmers: any[]; insp: any[]; inc: any[]; bat: any[] }>({ farmers: [], insp: [], inc: [], bat: [] });
   useEffect(() => {
     if (!ready) return;
-    (async () => {
-      const [f, i, c, b] = await Promise.all([
-        supabase.from("farmers").select("*"),
-        supabase.from("inspections").select("*").order("inspected_at", { ascending: true }),
-        supabase.from("incidents").select("*"),
-        supabase.from("batches").select("*"),
-      ]);
-      setData({ farmers: f.data ?? [], insp: i.data ?? [], inc: c.data ?? [], bat: b.data ?? [] });
-    })();
+    Promise.all([fF(), fI(), fC(), fB()]).then(([f, i, c, b]) => {
+      setData({ farmers: f ?? [], insp: (i ?? []).slice().reverse(), inc: c ?? [], bat: b ?? [] });
+    });
   }, [ready]);
   if (!ready) return null;
 
@@ -37,7 +36,6 @@ function Dashboard() {
     const scores = data.insp.filter((i) => ids.includes(i.farmer_id)).map((i) => Number(i.score));
     return { region: r, score: scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0 };
   });
-  const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
   const palette = ["#3a6b3a", "#b08a3a", "#c47a3a", "#7a4030"];
 
   return (
@@ -99,6 +97,7 @@ function Dashboard() {
               </div>
             );
           })}
+          {data.inc.length === 0 && <p className="py-4 text-sm text-muted-foreground">No incidents yet.</p>}
         </div>
       </Card>
     </AppShell>

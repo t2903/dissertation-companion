@@ -18,6 +18,7 @@ import { Route as BatchesRouteImport } from './routes/batches'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiInitDbRouteImport } from './routes/api/init-db'
 
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
@@ -64,6 +65,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiInitDbRoute = ApiInitDbRouteImport.update({
+  id: '/api/init-db',
+  path: '/api/init-db',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/incidents': typeof IncidentsRoute
   '/inspections': typeof InspectionsRoute
   '/reports': typeof ReportsRoute
+  '/api/init-db': typeof ApiInitDbRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByTo {
   '/incidents': typeof IncidentsRoute
   '/inspections': typeof InspectionsRoute
   '/reports': typeof ReportsRoute
+  '/api/init-db': typeof ApiInitDbRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   '/incidents': typeof IncidentsRoute
   '/inspections': typeof InspectionsRoute
   '/reports': typeof ReportsRoute
+  '/api/init-db': typeof ApiInitDbRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/incidents'
     | '/inspections'
     | '/reports'
+    | '/api/init-db'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/incidents'
     | '/inspections'
     | '/reports'
+    | '/api/init-db'
   id:
     | '__root__'
     | '/'
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '/incidents'
     | '/inspections'
     | '/reports'
+    | '/api/init-db'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -145,6 +157,7 @@ export interface RootRouteChildren {
   IncidentsRoute: typeof IncidentsRoute
   InspectionsRoute: typeof InspectionsRoute
   ReportsRoute: typeof ReportsRoute
+  ApiInitDbRoute: typeof ApiInitDbRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -212,6 +225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/init-db': {
+      id: '/api/init-db'
+      path: '/api/init-db'
+      fullPath: '/api/init-db'
+      preLoaderRoute: typeof ApiInitDbRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -225,17 +245,8 @@ const rootRouteChildren: RootRouteChildren = {
   IncidentsRoute: IncidentsRoute,
   InspectionsRoute: InspectionsRoute,
   ReportsRoute: ReportsRoute,
+  ApiInitDbRoute: ApiInitDbRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
