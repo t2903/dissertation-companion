@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, useAuthGuard } from "@/components/AppShell";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { listFarmers } from "@/lib/data.functions";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -11,9 +12,10 @@ export const Route = createFileRoute("/farmers")({ component: Farmers });
 
 function Farmers() {
   const ready = useAuthGuard();
+  const fetchFarmers = useServerFn(listFarmers);
   const [rows, setRows] = useState<any[]>([]);
   const [q, setQ] = useState("");
-  useEffect(() => { if (ready) supabase.from("farmers").select("*").order("name").then(({ data }) => setRows(data ?? [])); }, [ready]);
+  useEffect(() => { if (ready) fetchFarmers().then((d) => setRows(d ?? [])); }, [ready, fetchFarmers]);
   if (!ready) return null;
   const filtered = rows.filter((r) => `${r.name} ${r.region} ${r.contract_no}`.toLowerCase().includes(q.toLowerCase()));
   return (

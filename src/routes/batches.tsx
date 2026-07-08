@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, useAuthGuard } from "@/components/AppShell";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { listBatches, listFarmers } from "@/lib/data.functions";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -10,13 +11,14 @@ export const Route = createFileRoute("/batches")({ component: Batches });
 
 function Batches() {
   const ready = useAuthGuard();
+  const fetchBatches = useServerFn(listBatches);
+  const fetchFarmers = useServerFn(listFarmers);
   const [rows, setRows] = useState<any[]>([]);
   const [farmers, setFarmers] = useState<any[]>([]);
   useEffect(() => {
     if (!ready) return;
-    Promise.all([supabase.from("batches").select("*").order("batch_date", { ascending: false }), supabase.from("farmers").select("id,name,region")])
-      .then(([b, f]) => { setRows(b.data ?? []); setFarmers(f.data ?? []); });
-  }, [ready]);
+    Promise.all([fetchBatches(), fetchFarmers()]).then(([b, f]) => { setRows(b ?? []); setFarmers(f ?? []); });
+  }, [ready, fetchBatches, fetchFarmers]);
   if (!ready) return null;
   return (
     <AppShell title="Curing & Reaping Batches">
@@ -33,12 +35,13 @@ function Batches() {
                   <TableCell>{r.batch_date}</TableCell>
                   <TableCell className="font-medium">{f?.name}</TableCell>
                   <TableCell>{r.barn}</TableCell>
-                  <TableCell className={`text-right ${Number(r.moisture) > 14 ? "text-destructive font-semibold" : ""}`}>{Number(r.moisture).toFixed(1)}</TableCell>
+                  <TableCell className={`text-right ${Number(r.moisture) > 14 ? "text-destructive font-semibold" : ""}`}>{Number(r.moisture ?? 0).toFixed(1)}</TableCell>
                   <TableCell><Badge variant="outline">{r.grade}</Badge></TableCell>
                   <TableCell><Badge className={flagged ? "bg-destructive text-destructive-foreground" : "bg-success/20 text-primary"}>{r.status}</Badge></TableCell>
                 </TableRow>
               );
             })}
+            {rows.length === 0 && <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground">No batches recorded yet.</TableCell></TableRow>}
           </TableBody>
         </Table>
       </Card>

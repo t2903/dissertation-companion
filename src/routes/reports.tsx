@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, useAuthGuard } from "@/components/AppShell";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { listFarmers, listInspections, listIncidents } from "@/lib/data.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, FileText } from "lucide-react";
@@ -11,11 +12,13 @@ export const Route = createFileRoute("/reports")({ component: Reports });
 
 function Reports() {
   const ready = useAuthGuard();
+  const fF = useServerFn(listFarmers);
+  const fI = useServerFn(listInspections);
+  const fC = useServerFn(listIncidents);
   const [data, setData] = useState<{ farmers: any[]; insp: any[]; inc: any[] }>({ farmers: [], insp: [], inc: [] });
   useEffect(() => {
     if (!ready) return;
-    Promise.all([supabase.from("farmers").select("*"), supabase.from("inspections").select("*"), supabase.from("incidents").select("*")])
-      .then(([f, i, c]) => setData({ farmers: f.data ?? [], insp: i.data ?? [], inc: c.data ?? [] }));
+    Promise.all([fF(), fI(), fC()]).then(([f, i, c]) => setData({ farmers: f ?? [], insp: i ?? [], inc: c ?? [] }));
   }, [ready]);
   if (!ready) return null;
 

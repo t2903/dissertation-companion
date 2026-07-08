@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { Leaf, LayoutDashboard, Users, ClipboardCheck, AlertTriangle, Boxes, FileText, LogOut, Shield } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { getCurrentUser, signOut as signOutFn } from "@/lib/auth.functions";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -16,9 +17,11 @@ const nav = [
 export function AppShell({ children, title }: { children: React.ReactNode; title: string }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const getMe = useServerFn(getCurrentUser);
+  const doSignOut = useServerFn(signOutFn);
   const [email, setEmail] = useState<string>("");
-  useEffect(() => { supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? "")); }, []);
-  const signOut = async () => { await supabase.auth.signOut(); navigate({ to: "/" }); };
+  useEffect(() => { getMe().then((u) => setEmail(u?.email ?? "")); }, [getMe]);
+  const signOut = async () => { await doSignOut(); navigate({ to: "/" }); };
   return (
     <div className="flex min-h-screen bg-background">
       <aside className="hidden w-64 flex-col bg-sidebar text-sidebar-foreground md:flex">
@@ -59,13 +62,13 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
 
 export function useAuthGuard() {
   const navigate = useNavigate();
+  const getMe = useServerFn(getCurrentUser);
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => { if (!s) navigate({ to: "/auth" }); });
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) navigate({ to: "/auth" }); else setReady(true);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, [navigate]);
+    getMe().then((u) => {
+      if (!u) navigate({ to: "/auth" });
+      else setReady(true);
+    }).catch(() => navigate({ to: "/auth" }));
+  }, [navigate, getMe]);
   return ready;
 }

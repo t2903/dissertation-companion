@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { getCurrentUser } from "@/lib/auth.functions";
 import { Button } from "@/components/ui/button";
 import { Leaf, BarChart3, ShieldCheck, Database } from "lucide-react";
 
@@ -8,10 +9,9 @@ export const Route = createFileRoute("/")({ component: Landing });
 
 function Landing() {
   const navigate = useNavigate();
+  const getMe = useServerFn(getCurrentUser);
   const [authed, setAuthed] = useState(false);
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setAuthed(!!data.session));
-  }, []);
+  useEffect(() => { getMe().then((u) => setAuthed(!!u)); }, [getMe]);
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card/50 backdrop-blur">
@@ -50,7 +50,7 @@ function Landing() {
         </div>
       </main>
       <footer className="border-t py-8 text-center text-sm text-muted-foreground">
-        Prototype system for BBM&IT Dissertation · Catholic University of Zimbabwe
+        Prototype system for BBM&IT Dissertation · Catholic University of Zimbabwe · Neon Postgres backend
       </footer>
     </div>
   );

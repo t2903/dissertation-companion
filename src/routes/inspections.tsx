@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, useAuthGuard } from "@/components/AppShell";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { listInspections, listFarmers, createInspection } from "@/lib/data.functions";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -18,23 +19,24 @@ export const Route = createFileRoute("/inspections")({ component: Inspections })
 
 function Inspections() {
   const ready = useAuthGuard();
+  const fetchInsp = useServerFn(listInspections);
+  const fetchFarmers = useServerFn(listFarmers);
+  const doCreate = useServerFn(createInspection);
   const [rows, setRows] = useState<any[]>([]);
   const [farmers, setFarmers] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ farmer_id: "", inspector_name: "", inspection_type: "SOP Field Audit", score: 80, notes: "" });
   const load = async () => {
-    const [r, f] = await Promise.all([
-      supabase.from("inspections").select("*").order("inspected_at", { ascending: false }),
-      supabase.from("farmers").select("id,name,region"),
-    ]);
-    setRows(r.data ?? []); setFarmers(f.data ?? []);
+    const [r, f] = await Promise.all([fetchInsp(), fetchFarmers()]);
+    setRows(r ?? []); setFarmers(f ?? []);
   };
   useEffect(() => { if (ready) load(); }, [ready]);
   if (!ready) return null;
   const submit = async () => {
-    const { error } = await supabase.from("inspections").insert({ ...form, score: Number(form.score) });
-    if (error) return toast.error(error.message);
-    toast.success("Inspection recorded"); setOpen(false); load();
+    try {
+      await doCreate({ data: { ...form, score: Number(form.score) } });
+      toast.success("Inspection recorded"); setOpen(false); load();
+    } catch (e: any) { toast.error(e?.message ?? "Failed"); }
   };
   return (
     <AppShell title="Inspections">
@@ -83,6 +85,7 @@ function Inspections() {
                 </TableRow>
               );
             })}
+            {rows.length === 0 && <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground">No inspections yet.</TableCell></TableRow>}
           </TableBody>
         </Table>
       </Card>
